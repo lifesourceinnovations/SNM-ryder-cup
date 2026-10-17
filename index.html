@@ -188,27 +188,33 @@ function setPath(obj, path, val){
   const k = parts[parts.length-1];
   if(val === null) delete o[k]; else o[k] = val;
 }
+let pending = 0;
 async function write(path, val){
   setPath(state, path, val); lsSet(); render();
   if(!FIREBASE_URL) return;
+  pending++;
   try{
-    await fetch(`${FIREBASE_URL}/${ROOT}/${path}.json`, val===null ? {method:"DELETE"} : {method:"PUT", body:JSON.stringify(val)});
-    setSync(true);
+    const r = await fetch(`${FIREBASE_URL}/${ROOT}/${path}.json`, val===null ? {method:"DELETE"} : {method:"PUT", body:JSON.stringify(val)});
+    if(!r.ok){ setSync(false, `Could not save (error ${r.status}). Check the Firebase rules.`); }
+    else setSync(true);
   }catch(e){ setSync(false); }
+  finally{ pending--; if(pending===0) pull(); }
 }
 async function pull(){
-  if(!FIREBASE_URL) return;
+  if(!FIREBASE_URL || pending>0) return;
   try{
     const r = await fetch(`${FIREBASE_URL}/${ROOT}.json`);
+    if(!r.ok){ setSync(false, `Could not read (error ${r.status}). Check the Firebase rules.`); return; }
     const d = await r.json();
-    state = d || {matches:{}}; if(!state.matches) state.matches = {};
+    state = d || {}; if(!state.matches) state.matches = {};
+    ensureSeed();
     lsSet(); setSync(true); render();
   }catch(e){ setSync(false); }
 }
-let lastOk = true;
-function setSync(ok){
-  lastOk = ok;
-  $("#sync").textContent = !FIREBASE_URL ? "Saved on this device only" : ok ? "Live: synced with all captains" : "Offline: retrying";
+let lastOk = true, lastMsg = "";
+function setSync(ok, msg){
+  lastOk = ok; if(ok) lastMsg = ""; else if(msg !== undefined) lastMsg = msg;
+  $("#sync").textContent = !FIREBASE_URL ? "Saved on this device only" : ok ? "Live: synced with all captains" : (lastMsg || "Offline: retrying");
 }
 function startLive(){
   if(!FIREBASE_URL) return;
@@ -249,13 +255,18 @@ function totals(){
 }
 const fmt = n => n%1 ? n.toFixed(1) : String(n);
 
+/* Matches are fixed by the schedule, so build them locally. Nothing needs seeding in the database;
+   the first score or player saved creates the record there. */
 function ensureSeed(){
-  let changed=false;
+  if(!state.matches) state.matches = {};
   for(const day of DAYS) for(let i=1;i<=day.count;i++){
     const id=`d${day.id}m${i}`;
-    if(!state.matches[id]){ state.matches[id]={day:day.id,num:i,D:"",T:"",holes:{}}; changed=true; }
+    const m = state.matches[id] = state.matches[id] || {};
+    m.day = day.id; m.num = i;
+    if(typeof m.D !== "string") m.D = "";
+    if(typeof m.T !== "string") m.T = "";
+    if(!m.holes) m.holes = {};
   }
-  return changed;
 }
 
 /* ---------- render ---------- */
@@ -382,21 +393,24 @@ document.addEventListener("click", e=>{
 $("#modal").addEventListener("click",e=>{ if(e.target.id==="modal") closeSheet(); });
 $("#resetAll").addEventListener("click",()=>{
   ask("Reset all matches, players and scores for everyone?", "Reset everything", async ()=>{
-    const keep = state.roster; state={matches:{}}; if(keep) state.roster = keep; ensureSeed(); lsSet();
-    if(FIREBASE_URL){ try{ await fetch(`${FIREBASE_URL}/${ROOT}.json`,{method:"PUT",body:JSON.stringify(state)}); }catch(e){} }
-    render();
+    const keep = state.roster; state={matches:{}}; if(keep) state.roster = keep; ensureSeed(); lsSet(); render();
+    if(FIREBASE_URL){
+      pending++;
+      try{
+        const r = await fetch(`${FIREBASE_URL}/${ROOT}.json`,{method:"PUT",body:JSON.stringify(state)});
+        if(!r.ok) setSync(false, `Could not save (error ${r.status}). Check the Firebase rules.`); else setSync(true);
+      }catch(e){ setSync(false); }
+      finally{ pending--; if(pending===0) pull(); }
+    }
   });
 });
 
 /* ---------- boot ---------- */
 (async function(){
   const s = lsGet(); if(s && s.matches) state = s;
-  if(FIREBASE_URL){ await pull(); if(!state.matches) state.matches={}; }
-  if(ensureSeed()){
-    lsSet();
-    if(FIREBASE_URL){ for(const [id,m] of Object.entries(state.matches)){ if(!m.holes) fetch(`${FIREBASE_URL}/${ROOT}/matches/${id}.json`,{method:"PUT",body:JSON.stringify({day:m.day,num:m.num,D:"",T:""})}).catch(()=>{}); } }
-  }
-  render(); setSync(true); startLive();
+  ensureSeed(); render(); setSync(true);
+  if(FIREBASE_URL) await pull();
+  startLive();
 })();
 </script>
 
