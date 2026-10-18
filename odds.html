@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>SNM Ryder Cup Odds</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap">
+<style>
+:root{
+  --bg:#f2f5f3; --surface:#ffffff; --ink:#10231c; --mut:#5a6d65; --line:#dce5e0; --sunk:#f6f9f7;
+  --hdr:#0e2a21; --hdr-ink:#ffffff;
+  --d-solid:#1f6fd1; --d-text:#1f6fd1; --d-soft:#dbe8fa;
+  --t-solid:#1b8650; --t-text:#1b8650; --t-soft:#d6efe1;
+  --h-soft:#e9edeb; --half:#76847d; --warn-bg:#fff2cf; --warn-ink:#6d5000; --live:#c0392b; --danger:#b3321f;
+  --f-disp:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root{
+  --bg:#0c1511; --surface:#14211b; --ink:#e7f0ec; --mut:#93a79d; --line:#24352d; --sunk:#101b16;
+  --hdr:#081510; --d-solid:#2b6cc4; --d-text:#7db3f5; --d-soft:#17304f;
+  --t-solid:#1f7f4b; --t-text:#5ccd8e; --t-soft:#143a28;
+  --h-soft:#1d2b25; --half:#6c7a73; --warn-bg:#3a2f0d; --warn-ink:#f1d98a; --live:#ff8b78; --danger:#ff8b78}}
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font:16px/1.4 var(--f-body);background:var(--bg);color:var(--ink);padding-bottom:48px}
+.w{max-width:600px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button{font-family:inherit}
+a{color:inherit}
+
+header{background:var(--hdr);color:var(--hdr-ink);padding-block:max(18px,env(safe-area-inset-top,0px)) 18px}
+.top{display:flex;justify-content:space-between;align-items:center;font:600 12px/1 var(--f-body);letter-spacing:.14em;text-transform:uppercase}
+.top a{opacity:.75;text-decoration:none;padding:6px 0}
+.top span{opacity:.7}
+h1{margin:10px 0 0;font:700 34px/1 var(--f-disp);letter-spacing:.04em;text-align:center;text-transform:uppercase}
+.sync{font-size:12px;opacity:.65;margin-top:8px;text-align:center}
+
+.cup{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.cup h2{margin:0 0 4px}
+.score{color:var(--mut);font-size:14px;margin-bottom:10px;font-variant-numeric:tabular-nums}
+
+h2{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:26px 0 10px;font:700 20px/1.1 var(--f-disp);letter-spacing:.05em;text-transform:uppercase}
+h2 span{font:600 14px var(--f-body);letter-spacing:0;text-transform:none;color:var(--mut)}
+.cup h2{margin-top:0}
+
+.odds{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.o{border-radius:10px;padding:10px 6px 8px;text-align:center;background:var(--sunk);border:1.5px solid var(--line);min-width:0}
+.o .l{display:block;font:600 11px/1 var(--f-body);letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.o b{display:block;font:700 30px/1.1 var(--f-disp);font-variant-numeric:tabular-nums;margin-top:6px}
+.o .pc{display:block;font-size:12px;color:var(--mut);margin-top:2px;font-variant-numeric:tabular-nums}
+.o.D{background:var(--d-soft)} .o.D .l,.o.D b{color:var(--d-text)}
+.o.T{background:var(--t-soft)} .o.T .l,.o.T b{color:var(--t-text)}
+.o.H{background:var(--h-soft)}
+.o.fav{border-color:currentColor}
+.o.D.fav{border-color:var(--d-solid)} .o.T.fav{border-color:var(--t-solid)} .o.H.fav{border-color:var(--half)}
+.o.off{opacity:.45}
+
+.m{background:var(--surface);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;padding:13px 14px}
+.mt{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mn{font:600 12px/1 var(--f-body);color:var(--mut);letter-spacing:.1em;text-transform:uppercase}
+.tag{font:700 12px/1 var(--f-disp);letter-spacing:.08em;text-transform:uppercase;padding:5px 8px;border-radius:5px;background:var(--sunk);color:var(--mut);border:1px solid var(--line)}
+.tag.live{background:var(--live);color:#fff;border-color:transparent}
+.tag.prov{background:var(--warn-bg);color:var(--warn-ink);border-color:transparent}
+.tag.D{background:var(--d-solid);color:#fff;border-color:transparent}
+.tag.T{background:var(--t-solid);color:#fff;border-color:transparent}
+.tag.H{background:var(--half);color:#fff;border-color:transparent}
+.pl{display:flex;flex-wrap:wrap;gap:2px 8px;align-items:baseline;margin:6px 0 0;font-weight:600}
+.dd{color:var(--d-text)}.tt{color:var(--t-text)}.x{color:var(--mut);font-weight:400;font-size:13px}
+.st{margin:4px 0 10px;color:var(--mut);font-size:14px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:26px}
+.card h3{margin:0 0 4px;font:700 18px/1.1 var(--f-disp);letter-spacing:.06em;text-transform:uppercase}
+.card p{margin:0 0 12px;color:var(--mut);font-size:14px}
+.ctl{margin-bottom:14px}
+.ctl label{display:flex;justify-content:space-between;font-weight:600;font-size:15px}
+.ctl label output{font-variant-numeric:tabular-nums;color:var(--d-text)}
+.ctl small{display:block;color:var(--mut);font-size:13px;margin-top:2px}
+input[type=range]{width:100%;margin:8px 0 0;accent-color:var(--d-solid);min-height:28px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.b{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:10px 13px;font-size:14px;font-weight:600;cursor:pointer;min-height:42px}
+.b:focus-visible,input:focus-visible{outline:3px solid var(--d-text);outline-offset:2px}
+.b.D{background:var(--d-solid);color:#fff;border-color:transparent}
+.notes{margin:0;padding-left:18px;color:var(--mut);font-size:13px}
+.notes li{margin-bottom:4px}
+.pt{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ph,.pr{display:grid;grid-template-columns:26px minmax(0,1fr) 46px 46px 62px;gap:6px;align-items:center;padding:9px 12px}
+.ph{font:600 11px/1 var(--f-body);letter-spacing:.1em;text-transform:uppercase;color:var(--mut);background:var(--sunk);padding-block:10px}
+.ph span:nth-child(n+3),.pr span:nth-child(n+3){text-align:right}
+.pr{border-top:1px solid var(--line);font-variant-numeric:tabular-nums}
+.pr .rk{font:700 18px/1 var(--f-disp);color:var(--mut)}
+.pr .nm{font-weight:600;min-width:0;overflow-wrap:anywhere}
+.pr .nm small{display:block;font-weight:400;color:var(--mut);font-size:12px}
+.pr .od{font:700 20px/1 var(--f-disp)}
+.pr:nth-child(2) .rk{color:var(--ink)}
+.pnote{margin:8px 2px 0;font-size:13px;color:var(--mut)}
+.err{margin-top:12px;padding:10px 12px;border-radius:8px;background:var(--warn-bg);color:var(--warn-ink);font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <div class="w">
+    <div class="top"><a href="index.html">&larr; Scores</a><span>Bookie's odds</span></div>
+    <h1>SNM Ryder Cup</h1>
+    <div class="sync" id="sync">Connecting...</div>
+  </div>
+</header>
+
+<main class="w">
+  <div id="err"></div>
+  <section class="cup" id="cup"></section>
+  <section id="players"></section>
+  <section id="days"></section>
+
+  <section class="card">
+    <h3>Bookie settings</h3>
+    <p>These only change the odds shown on this device. Use "Copy link" to share your settings.</p>
+    <div class="ctl">
+      <label for="wr">Handicap gap kept in the odds <output id="wo"></output></label>
+      <input type="range" id="wr" min="0" max="100" step="5">
+      <small>100% means nobody gets any help for their handicap. 0% means tees and strokes level everything, so every match opens near 50/50.</small>
+    </div>
+    <div class="ctl">
+      <label for="mr">Bookie margin <output id="mo"></output></label>
+      <input type="range" id="mr" min="0" max="20" step="1">
+      <small>Built into every price. Higher means shorter odds for bettors and a bigger edge for the house.</small>
+    </div>
+    <div class="row">
+      <button type="button" class="b D" id="copySheet">Copy odds sheet</button>
+      <button type="button" class="b" id="copyLink">Copy link with settings</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>How the odds are made</h3>
+    <ul class="notes">
+      <li>Each player's handicap is strokes over family par across 18 holes. A scratch player (0) plays to par.</li>
+      <li>Pairs: Better Ball counts 70% of the lower handicap and 30% of the higher. Scramble uses the same split at half size, like the standard scramble formula.</li>
+      <li>The handicap gap between the sides sets each hole's chance of a win, a halve or a loss. Odds then come from every way the 18 holes can still play out, so they move as holes are entered.</li>
+      <li>Cup odds combine all 11 matches. Settled matches are locked in. Matches with players not yet picked use the team's average handicap and show "Provisional".</li>
+      <li>Player odds: the rest of the cup is played out 4,000 times. Each player earns the points of their matches (1 for a win, half for a halve). "Top scorer" is the share of runs where they finish with the most points, with dead heats split.</li>
+      <li>Odds are decimal: a stake times the odds is the total return, stake included.</li>
+    </ul>
+  </section>
+</main>
+
+<script>
+/* ============ CONFIG ============ */
+const DEFAULT_DB = "https://snm-ryder-cup-default-rtdb.firebaseio.com";
+const ROOT = "ryder-2026";
+const DEFAULT_ROSTER = {
+  D: [{n:"Azhar (C)",h:0},{n:"Simba",h:10},{n:"Chacha",h:18},{n:"Sara",h:32},{n:"Aidan",h:18}],
+  T: [{n:"Qaher (C)",h:0},{n:"Amano",h:0},{n:"Nadz",h:32},{n:"Moni",h:32},{n:"Adam/Illy",h:32}]
+};
+/* sd = spread of the score gap on one hole (strokes). Pairs are steadier than singles. */
+const DAYS = [
+  {id:1, name:"Day 1 · Better Ball", count:3, fmt:"bb", sd:1.2},
+  {id:2, name:"Day 2 · Scramble",    count:3, fmt:"sc", sd:1.1},
+  {id:3, name:"Day 3 · Singles",     count:5, fmt:"si", sd:1.4}
+];
+const DEFAULTS = {m:8, w:30};
+/* ================================== */
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+const fmtPts = n => n%1 ? n.toFixed(1) : String(n);
+
+const qs = new URLSearchParams(location.hash.replace(/^#/, ""));
+const DB = (new URLSearchParams(location.search).get("db") || DEFAULT_DB).replace(/\/$/, "");
+const num = (v, d, lo, hi) => { const n = parseFloat(v); return isNaN(n) ? d : Math.min(hi, Math.max(lo, n)); };
+const settings = { m: num(qs.get("m"), DEFAULTS.m, 0, 20), w: num(qs.get("w"), DEFAULTS.w, 0, 100) };
+let state = {matches:{}};
+let syncOk = null, syncMsg = "";
+
+/* ---------- state helpers (same shape as the scoreboard) ---------- */
+function roster(team){
+  const r = state.roster ? (state.roster[team] || []) : DEFAULT_ROSTER[team];
+  return Array.isArray(r) ? r : Object.values(r);
+}
+function ensureSeed(){
+  if(!state.matches) state.matches = {};
+  for(const day of DAYS) for(let i=1;i<=day.count;i++){
+    const id = `d${day.id}m${i}`;
+    const m = state.matches[id] = state.matches[id] || {};
+    m.day = day.id; m.num = i;
+    if(typeof m.D !== "string") m.D = "";
+    if(typeof m.T !== "string") m.T = "";
+    if(!m.holes) m.holes = {};
+  }
+}
+function calc(m){
+  const h = m.holes || {};
+  let d=0,t=0,played=0;
+  for(let i=1;i<=18;i++){ const v=h[i]; if(v==="D")d++; else if(v==="T")t++; if(v) played++; }
+  const lead=d-t, rem=18-played;
+  let result=null, text="", margin="";
+  if(m.final){ result=m.final; margin = m.final==="H"?"Halved":"Conceded"; }
+  else if(played===18){ result = lead>0?"D":lead<0?"T":"H"; margin = lead===0?"Halved":`${Math.abs(lead)} up`; }
+  else if(played>0 && Math.abs(lead)>rem){ result = lead>0?"D":"T"; margin = `${Math.abs(lead)}&${rem}`; }
+  const leader = lead>0?"Dolphins":"Turtles";
+  if(result) text = result==="H" ? "Match halved" : `${result==="D"?"Dolphins":"Turtles"} win ${margin==="Conceded"?"(conceded)":margin}`;
+  else if(played===0) text = "Not started";
+  else text = (lead===0?"All square":`${leader} ${Math.abs(lead)} up`) + ` through ${played}`;
+  return {d,t,played,lead,rem,result,text};
+}
+
+/* ---------- the model ---------- */
+function erf(x){
+  const s = x<0?-1:1; x = Math.abs(x);
+  const t = 1/(1+0.3275911*x);
+  const y = 1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x);
+  return s*y;
+}
+const Phi = x => 0.5*(1+erf(x/Math.SQRT2));
+
+/* Chance Dolphins win / halve / lose a single hole. delta = strokes per hole in Dolphins' favour. */
+function holeProbs(delta, sd){
+  const D = 1-Phi((0.5-delta)/sd);
+  const T = Phi((-0.5-delta)/sd);
+  return {D, T, H: Math.max(0, 1-D-T)};
+}
+/* Distribution of the final result [Dolphins, Halve, Turtles] from the current lead with `rem` holes left. */
+function finish(lead, rem, p){
+  const memo = new Map();
+  const f = (l, r) => {
+    if(Math.abs(l) > r) return l>0 ? [1,0,0] : [0,0,1];
+    if(r === 0) return [0,1,0];
+    const k = l+","+r; if(memo.has(k)) return memo.get(k);
+    const a=f(l+1,r-1), b=f(l,r-1), c=f(l-1,r-1);
+    const out = [0,1,2].map(i => p.D*a[i] + p.H*b[i] + p.T*c[i]);
+    memo.set(k,out); return out;
+  };
+  return f(lead, rem);
+}
+function split(s){ return s ? s.split("|").filter(Boolean) : []; }
+function hOf(team, name){ const p = roster(team).find(x => x.n === name); return p ? (Number(p.h)||0) : null; }
+function avgH(team){ const r = roster(team); return r.length ? r.reduce((s,p)=>s+(Number(p.h)||0),0)/r.length : 16; }
+/* Team handicap for the format. Missing players are filled with the team average. */
+function eff(team, names, fmt){
+  let hs = names.map(n => hOf(team,n)).filter(x => x!==null).sort((a,b)=>a-b);
+  if(!hs.length) hs = [avgH(team)];
+  if(fmt==="si") return hs[0];
+  const lo = hs[0], hi = hs.length>1 ? hs[1] : hs[0];
+  const base = 0.7*lo + 0.3*hi;
+  return fmt==="sc" ? 0.5*base : base;
+}
+const distCache = new Map();
+function matchDist(day, dn, tn, lead, rem){
+  const eD = eff("D",dn,day.fmt), eT = eff("T",tn,day.fmt);
+  const key = [day.id, eD.toFixed(3), eT.toFixed(3), lead, rem, settings.w].join("|");
+  if(distCache.has(key)) return distCache.get(key);
+  if(distCache.size > 20000) distCache.clear();
+  const delta = (settings.w/100) * (eT - eD) / 18;
+  const p = finish(lead, rem, holeProbs(delta, day.sd));
+  distCache.set(key, p); return p;
+}
+function priceMatch(m){
+  const day = DAYS.find(d => d.id===m.day);
+  const c = calc(m);
+  if(c.result) return {c, settled:true, prov:false, p: c.result==="D"?[1,0,0]:c.result==="T"?[0,0,1]:[0,1,0]};
+  const dn = split(m.D), tn = split(m.T);
+  const need = day.fmt==="si" ? 1 : 2;
+  const prov = dn.length < need || tn.length < need;
+  return {c, settled:false, prov, p: matchDist(day, dn, tn, c.lead, c.rem)};
+}
+
+/* ---------- players: banked points, expected points, top-scorer odds ---------- */
+const shuffle = a => { a = a.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+function playerBoard(trials=4000){
+  const ps = [];
+  for(const team of ["D","T"]) for(const p of roster(team)) ps.push({team, n:p.n, h:Number(p.h)||0, key:team+"|"+p.n, pts:0, w:0, hv:0, l:0});
+  const byKey = Object.fromEntries(ps.map(p => [p.key, p]));
+  const open = [];
+  for(const m of orderedMatches()){
+    const day = DAYS.find(d => d.id===m.day), c = calc(m);
+    if(c.result){
+      const pts = {D: c.result==="D"?1:c.result==="H"?.5:0, T: c.result==="T"?1:c.result==="H"?.5:0};
+      for(const team of ["D","T"]) for(const n of split(m[team])){
+        const p = byKey[team+"|"+n]; if(!p) continue;
+        p.pts += pts[team];
+        if(pts[team]===1) p.w++; else if(pts[team]===.5) p.hv++; else p.l++;
+      }
+    } else open.push({m, day, c});
+  }
+  if(!ps.length) return [];
+  const base = ps.map(p => p.pts), sum = ps.map(() => 0), top = ps.map(() => 0);
+  const idx = Object.fromEntries(ps.map((p,i) => [p.key, i]));
+  for(let t=0;t<trials;t++){
+    const pts = base.slice();
+    for(const day of DAYS){
+      const ms = open.filter(o => o.day.id===day.id);
+      if(!ms.length) continue;
+      const need = day.fmt==="si" ? 1 : 2, pool = {}, all = {};
+      for(const team of ["D","T"]){
+        all[team] = roster(team).map(p => p.n);
+        const fixed = new Set(); ms.forEach(o => { const ns = split(o.m[team]); if(ns.length>=need) ns.forEach(n => fixed.add(n)); });
+        pool[team] = shuffle(all[team].filter(n => !fixed.has(n)));
+      }
+      for(const o of ms){
+        const sides = {};
+        for(const team of ["D","T"]){
+          const ns = split(o.m[team]).filter(n => idx[team+"|"+n]!==undefined).slice(0, need);
+          let guard = 0;
+          while(ns.length < need && all[team].length && guard++ < 20){
+            if(!pool[team].length) pool[team] = shuffle(all[team]);
+            const n = pool[team].pop(); if(!ns.includes(n)) ns.push(n);
+          }
+          sides[team] = ns;
+        }
+        const p = matchDist(o.day, sides.D, sides.T, o.c.lead, o.c.rem), r = Math.random();
+        const res = r < p[0] ? "D" : r < p[0]+p[1] ? "H" : "T";
+        for(const team of ["D","T"]){
+          const v = res==="H" ? .5 : res===team ? 1 : 0;
+          for(const n of sides[team]) pts[idx[team+"|"+n]] += v;
+        }
+      }
+    }
+    let mx = -1, k = 0;
+    for(let i=0;i<pts.length;i++){ sum[i] += pts[i]; if(pts[i]>mx){ mx = pts[i]; k = 1; } else if(pts[i]===mx) k++; }
+    for(let i=0;i<pts.length;i++) if(pts[i]===mx) top[i] += 1/k;
+  }
+  ps.forEach((p,i) => { p.exp = sum[i]/trials; p.top = top[i]/trials; });
+  return ps.sort((a,b) => b.exp-a.exp || a.h-b.h || a.n.localeCompare(b.n));
+}
+function playersHtml(board){
+  if(!board.length) return "";
+  const rows = board.map((p,i) => `<div class="pr"><span class="rk">${i+1}</span>
+      <span class="nm ${p.team==="D"?"dd":"tt"}">${esc(p.n)}<small>${p.team==="D"?"Dolphins":"Turtles"} · hcp ${p.h}${p.w+p.hv+p.l?` · W${p.w} H${p.hv} L${p.l}`:""}</small></span>
+      <span>${fmtPts(p.pts)}</span><span>${p.exp.toFixed(1)}</span><b class="od">${showOdds(priceOf(p.top))}</b></div>`).join("");
+  return `<h2>Players<span>Top scorer odds</span></h2>
+    <div class="pt"><div class="ph"><span>#</span><span>Player</span><span>Pts</span><span>Exp</span><span>Odds</span></div>${rows}</div>
+    <p class="pnote">Ranked by expected final points. Pts is points won so far, Exp is the projection. Players not yet placed in a match are shuffled into the open slots, so these firm up as groups are picked.</p>`;
+}
+function orderedMatches(){
+  return Object.values(state.matches).sort((a,b)=> a.day-b.day || a.num-b.num);
+}
+/* Exact cup distribution. Index = Dolphins' points in half-points (0..22); 12+ wins, 11 is a 5.5-5.5 tie. */
+function cupProbs(){
+  let dist = new Array(23).fill(0); dist[0] = 1;
+  for(const m of orderedMatches()){
+    const p = priceMatch(m).p, nd = new Array(23).fill(0);
+    for(let i=0;i<=22;i++){
+      if(!dist[i]) continue;
+      if(i+2<=22) nd[i+2] += dist[i]*p[0];
+      if(i+1<=22) nd[i+1] += dist[i]*p[1];
+      nd[i] += dist[i]*p[2];
+    }
+    dist = nd;
+  }
+  let D=0,H=0,T=0;
+  dist.forEach((v,i) => { if(i>=12) D+=v; else if(i===11) H+=v; else T+=v; });
+  return [D,H,T];
+}
+function totals(){
+  let D=0,T=0;
+  for(const m of orderedMatches()){
+    const r = calc(m).result; if(!r) continue;
+    if(r==="D") D+=1; else if(r==="T") T+=1; else { D+=.5; T+=.5; }
+  }
+  return {D,T};
+}
+
+/* ---------- odds formatting ---------- */
+function priceOf(p){
+  if(p < 0.0005) return null;
+  return Math.max(1.01, 1/(p*(1+settings.m/100)));
+}
+function showOdds(o){
+  if(o===null) return "–";
+  if(o>=100) return "100+";
+  return o>=10 ? o.toFixed(1) : o.toFixed(2);
+}
+const pct = p => p>=0.995 ? "99%+" : p<0.005 ? "<1%" : Math.round(p*100)+"%";
+
+function oddsRow(p, labels, settled){
+  const prices = p.map(priceOf);
+  const valid = prices.filter(x => x!==null);
+  const best = valid.length ? Math.min(...valid) : null;
+  const cls = ["D","H","T"];
+  return `<div class="odds">${p.map((pp,i)=>{
+    const pr = prices[i];
+    return `<div class="o ${cls[i]} ${pr!==null && pr===best?"fav":""} ${pr===null?"off":""}"><span class="l">${labels[i]}</span><b>${showOdds(pr)}</b><span class="pc">${pct(pp)}</span></div>`;
+  }).join("")}</div>`;
+}
+
+/* ---------- render ---------- */
+function nameList(str, cls, team){
+  const ns = split(str);
+  if(!ns.length) return `<span class="x">Players TBC</span>`;
+  return `<span class="${cls}">${ns.map(n => { const h = hOf(team,n); return esc(n) + (h===null?"":` <span class="x">${h}</span>`); }).join(" &amp; ")}</span>`;
+}
+function render(){
+  const tt = totals(), cp = cupProbs();
+  const anyProv = orderedMatches().some(m => priceMatch(m).prov);
+  $("#cup").innerHTML = `<h2>Cup winner</h2>
+    <div class="score">Score: Dolphins ${fmtPts(tt.D)} – ${fmtPts(tt.T)} Turtles · first to 6 of 11 points${anyProv?" · includes provisional matches":""}</div>
+    ${oddsRow(cp, ["Dolphins","Tied 5.5–5.5","Turtles"])}`;
+
+  $("#players").innerHTML = playersHtml(playerBoard());
+  let html = "";
+  for(const day of DAYS){
+    const ms = orderedMatches().filter(m => m.day===day.id);
+    html += `<h2>${day.name}</h2>`;
+    for(const m of ms){
+      const r = priceMatch(m), c = r.c;
+      let tag;
+      if(r.settled) tag = `<span class="tag ${c.result}">${c.result==="H"?"Halved":c.result==="D"?"Dolphins":"Turtles"}</span>`;
+      else if(c.played>0) tag = `<span class="tag live">Live</span>`;
+      else if(r.prov) tag = `<span class="tag prov">Provisional</span>`;
+      else tag = `<span class="tag">Open</span>`;
+      html += `<div class="m">
+        <div class="mt"><div class="mn">Group ${m.num}</div>${tag}</div>
+        <div class="pl">${nameList(m.D,"dd","D")} <span class="x">vs</span> ${nameList(m.T,"tt","T")}</div>
+        <div class="st">${esc(c.text)}${r.prov&&!r.settled?" · pick players in the scoreboard to firm up the price":""}</div>
+        ${r.settled ? "" : oddsRow(r.p, ["Dolphins","Halve","Turtles"])}
+      </div>`;
+    }
+  }
+  $("#days").innerHTML = html;
+  $("#wo").textContent = settings.w + "%";
+  $("#mo").textContent = settings.m + "%";
+  const s = $("#sync");
+  s.textContent = syncOk===null ? "Connecting..." : syncOk ? "Live: odds update as scores are entered" : (syncMsg || "Offline: retrying");
+  $("#err").innerHTML = syncOk===false && syncMsg ? `<div class="err">${esc(syncMsg)}</div>` : "";
+}
+
+/* ---------- data (read-only: this page never writes to the scoreboard) ---------- */
+async function pull(){
+  try{
+    const r = await fetch(`${DB}/${ROOT}.json`, {cache:"no-store"});
+    if(!r.ok){ syncOk=false; syncMsg=`Could not read the scoreboard (error ${r.status}).`; render(); return; }
+    const d = await r.json();
+    state = d || {}; ensureSeed();
+    syncOk = true; syncMsg = ""; render();
+  }catch(e){ syncOk=false; syncMsg=""; render(); }
+}
+function startLive(){
+  let t; const deb = () => { clearTimeout(t); t = setTimeout(pull, 200); };
+  try{
+    const es = new EventSource(`${DB}/${ROOT}.json`);
+    es.addEventListener("put", deb); es.addEventListener("patch", deb);
+    es.onerror = () => {};
+  }catch(e){}
+  setInterval(pull, 10000);
+}
+
+/* ---------- sharing / controls ---------- */
+function writeHash(){
+  const p = new URLSearchParams(); p.set("w", settings.w); p.set("m", settings.m);
+  try{ history.replaceState(null, "", "#" + p.toString()); }catch(e){}
+}
+async function copyText(text, btn, done){
+  const old = btn.textContent;
+  try{ await navigator.clipboard.writeText(text); btn.textContent = done; }
+  catch(e){
+    const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); btn.textContent = done; }catch(_){ btn.textContent = "Copy failed"; }
+    ta.remove();
+  }
+  setTimeout(() => btn.textContent = old, 1800);
+}
+function oddsSheet(){
+  const strip = s => s.replace(/\s*\(C\)/, "");
+  const line = (p, l) => p.map((pp,i) => `${l[i]} ${showOdds(priceOf(pp))}`).join(" | ");
+  const out = ["SNM RYDER CUP ODDS", "Cup: " + line(cupProbs(), ["Dolphins","Tied","Turtles"]), ""];
+  const bd = playerBoard(2000).slice().sort((a,b) => b.top-a.top).slice(0,6);
+  out.push("Top scorer: " + bd.map(p => `${strip(p.n)} ${showOdds(priceOf(p.top))}`).join(" | "), "");
+  for(const day of DAYS){
+    const open = orderedMatches().filter(m => m.day===day.id && !priceMatch(m).settled);
+    if(!open.length) continue;
+    out.push(day.name);
+    for(const m of open){
+      const r = priceMatch(m);
+      const d = split(m.D).map(strip).join(" & ") || "TBC", t = split(m.T).map(strip).join(" & ") || "TBC";
+      out.push(`G${m.num} ${d} v ${t}${r.prov?" (provisional)":""}`);
+      out.push("  " + line(r.p, ["Dolphins","Halve","Turtles"]));
+    }
+    out.push("");
+  }
+  out.push("Decimal odds, stake included in return.");
+  return out.join("\n");
+}
+$("#wr").value = settings.w; $("#mr").value = settings.m;
+$("#wr").addEventListener("input", e => { settings.w = +e.target.value; writeHash(); render(); });
+$("#mr").addEventListener("input", e => { settings.m = +e.target.value; writeHash(); render(); });
+$("#copySheet").addEventListener("click", e => copyText(oddsSheet(), e.currentTarget, "Copied"));
+$("#copyLink").addEventListener("click", e => { writeHash(); copyText(location.href, e.currentTarget, "Copied"); });
+
+/* ---------- boot ---------- */
+ensureSeed(); render(); pull(); startLive();
+</script>
+</body>
+</html>
