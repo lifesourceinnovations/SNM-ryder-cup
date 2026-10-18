@@ -236,13 +236,51 @@ function split(s){ return s ? s.split("|").filter(Boolean) : []; }
 function hOf(team, name){ const p = roster(team).find(x => x.n === name); return p ? (Number(p.h)||0) : null; }
 function avgH(team){ const r = roster(team); return r.length ? r.reduce((s,p)=>s+(Number(p.h)||0),0)/r.length : 16; }
 /* Team handicap for the format. Missing players are filled with the team average. */
-function eff(team, names, fmt){
-  let hs = names.map(n => hOf(team,n)).filter(x => x!==null).sort((a,b)=>a-b);
+const SCRAMBLE_W = {1:[.5], 2:[.35,.15], 3:[.2,.15,.1], 4:[.25,.2,.15,.1]};
+function eff(team, list, fmt){
+  let hs = list.map(n => hOf(team,n)).filter(x => x!==null).sort((a,b)=>a-b);
   if(!hs.length) hs = [avgH(team)];
   if(fmt==="si") return hs[0];
+  if(fmt==="sc"){ const w = SCRAMBLE_W[Math.min(hs.length,4)]; return hs.slice(0,4).reduce((s,h,i) => s + w[i]*h, 0); }
   const lo = hs[0], hi = hs.length>1 ? hs[1] : hs[0];
-  const base = 0.7*lo + 0.3*hi;
-  return fmt==="sc" ? 0.5*base : base;
+  return 0.7*lo + 0.3*hi;
+}
+
+/* Names saved in a match can go out of date when the roster is edited (e.g. "Adam/Illy" split into Adam and Iliy).
+   Map each saved name back onto the current roster so results and handicaps still follow the right players. */
+function lev(a, b){
+  const d = Array.from({length:a.length+1}, (_,i) => [i]);
+  for(let j=1;j<=b.length;j++) d[0][j] = j;
+  for(let i=1;i<=a.length;i++) for(let j=1;j<=b.length;j++)
+    d[i][j] = Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1] + (a[i-1]===b[j-1]?0:1));
+  return d[a.length][b.length];
+}
+function resolve(team, token){
+  const all = roster(team).map(p => p.n);
+  if(all.includes(token)) return [token];
+  const found = [];
+  for(const part of token.split("/").map(s => s.trim()).filter(Boolean)){
+    const lp = part.toLowerCase();
+    const hit = all.find(n => n.toLowerCase()===lp) || all.find(n => n.length>=3 && lev(n.toLowerCase(), lp)<=1);
+    if(hit && !found.includes(hit)) found.push(hit);
+  }
+  return found;
+}
+function names(team, str){
+  const out = [];
+  for(const t of split(str)) for(const r of resolve(team,t)) if(!out.includes(r)) out.push(r);
+  return out;
+}
+function nameIssues(){
+  const msgs = [];
+  for(const m of orderedMatches()) for(const team of ["D","T"]) for(const t of split(m[team])){
+    if(roster(team).some(p => p.n===t)) continue;
+    const r = resolve(team,t), where = `Day ${m.day} Group ${m.num}`;
+    msgs.push(r.length
+      ? `${where} lists "${t}", who is no longer on the roster. It is credited to ${r.join(" and ")}. If only one of them played, re-pick the player in the scoreboard.`
+      : `${where} lists "${t}", who is not on the roster, so that player is not counted.`);
+  }
+  return msgs;
 }
 const distCache = new Map();
 function matchDist(day, dn, tn, lead, rem){
@@ -258,7 +296,7 @@ function priceMatch(m){
   const day = DAYS.find(d => d.id===m.day);
   const c = calc(m);
   if(c.result) return {c, settled:true, prov:false, p: c.result==="D"?[1,0,0]:c.result==="T"?[0,0,1]:[0,1,0]};
-  const dn = split(m.D), tn = split(m.T);
+  const dn = names("D", m.D), tn = names("T", m.T);
   const need = day.fmt==="si" ? 1 : 2;
   const prov = dn.length < need || tn.length < need;
   return {c, settled:false, prov, p: matchDist(day, dn, tn, c.lead, c.rem)};
@@ -275,7 +313,7 @@ function playerBoard(trials=4000){
     const day = DAYS.find(d => d.id===m.day), c = calc(m);
     if(c.result){
       const pts = {D: c.result==="D"?1:c.result==="H"?.5:0, T: c.result==="T"?1:c.result==="H"?.5:0};
-      for(const team of ["D","T"]) for(const n of split(m[team])){
+      for(const team of ["D","T"]) for(const n of names(team, m[team])){
         const p = byKey[team+"|"+n]; if(!p) continue;
         p.pts += pts[team];
         if(pts[team]===1) p.w++; else if(pts[team]===.5) p.hv++; else p.l++;
@@ -293,13 +331,13 @@ function playerBoard(trials=4000){
       const need = day.fmt==="si" ? 1 : 2, pool = {}, all = {};
       for(const team of ["D","T"]){
         all[team] = roster(team).map(p => p.n);
-        const fixed = new Set(); ms.forEach(o => { const ns = split(o.m[team]); if(ns.length>=need) ns.forEach(n => fixed.add(n)); });
+        const fixed = new Set(); ms.forEach(o => { const ns = names(team, o.m[team]); if(ns.length>=need) ns.forEach(n => fixed.add(n)); });
         pool[team] = shuffle(all[team].filter(n => !fixed.has(n)));
       }
       for(const o of ms){
         const sides = {};
         for(const team of ["D","T"]){
-          const ns = split(o.m[team]).filter(n => idx[team+"|"+n]!==undefined).slice(0, need);
+          const ns = names(team, o.m[team]).filter(n => idx[team+"|"+n]!==undefined).slice(0, day.fmt==="sc" ? 4 : need);
           let guard = 0;
           while(ns.length < need && all[team].length && guard++ < 20){
             if(!pool[team].length) pool[team] = shuffle(all[team]);
@@ -385,7 +423,7 @@ function oddsRow(p, labels, settled){
 
 /* ---------- render ---------- */
 function nameList(str, cls, team){
-  const ns = split(str);
+  const ns = names(team, str);
   if(!ns.length) return `<span class="x">Players TBC</span>`;
   return `<span class="${cls}">${ns.map(n => { const h = hOf(team,n); return esc(n) + (h===null?"":` <span class="x">${h}</span>`); }).join(" &amp; ")}</span>`;
 }
@@ -421,7 +459,8 @@ function render(){
   $("#mo").textContent = settings.m + "%";
   const s = $("#sync");
   s.textContent = syncOk===null ? "Connecting..." : syncOk ? "Live: odds update as scores are entered" : (syncMsg || "Offline: retrying");
-  $("#err").innerHTML = syncOk===false && syncMsg ? `<div class="err">${esc(syncMsg)}</div>` : "";
+  $("#err").innerHTML = (syncOk===false && syncMsg ? `<div class="err">${esc(syncMsg)}</div>` : "")
+    + nameIssues().map(t => `<div class="err">${esc(t)}</div>`).join("");
 }
 
 /* ---------- data (read-only: this page never writes to the scoreboard) ---------- */
@@ -471,7 +510,7 @@ function oddsSheet(){
     out.push(day.name);
     for(const m of open){
       const r = priceMatch(m);
-      const d = split(m.D).map(strip).join(" & ") || "TBC", t = split(m.T).map(strip).join(" & ") || "TBC";
+      const d = names("D", m.D).map(strip).join(" & ") || "TBC", t = names("T", m.T).map(strip).join(" & ") || "TBC";
       out.push(`G${m.num} ${d} v ${t}${r.prov?" (provisional)":""}`);
       out.push("  " + line(r.p, ["Dolphins","Halve","Turtles"]));
     }
